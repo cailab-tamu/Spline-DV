@@ -39,8 +39,12 @@ vignettes/*.pdf
 # R Environment Variables
 .Renviron
 
-# pkgdown site
-docs/
+# pkgdown site (generated), but keep the hand-written method documentation
+docs/*
+!docs/analytic-curve.md
+!docs/Spline-DV_analytic_curve.docx
+!docs/analytic_vs_spline.png
+!docs/analytic_vs_spline_3d.png
 
 # translation temp files
 po/*~
