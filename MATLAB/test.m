@@ -155,22 +155,28 @@ title('Sample 1: reference curve, fitted vs analytic')
 legend({'genes', 'spline', 'analytic'}, 'Location', 'northeast')
 
 
-%% 7. Variables for test_gui
+%% 7. Hand off to test_gui
 
-% test_gui plots the gene clouds, the two reference curves, and the
-% expression profile of a selected gene. It expects these names. Swap
-% splinepts for analyticpts below to view the analytic curves instead.
+% test_gui draws the gene clouds, both reference curves, and the expression
+% profile of whichever gene you click on.
 g = genes;
 
+% Expression matrices, rows in the same order as g.
 [~, loc] = ismember(genes, g_ori);
 X1 = X1_norm(loc, :);
 X2 = X2_norm(loc, :);
 
-px1 = T.lgu_1;  py1 = T.lgcv_1;  pz1 = T.dropr_1;
-px2 = T.lgu_2;  py2 = T.lgcv_2;  pz2 = T.dropr_2;
+% Gene coordinates, one row per gene, in the same order as g.
+P1 = [T.lgu_1, T.lgcv_1, T.dropr_1];
+P2 = [T.lgu_2, T.lgcv_2, T.dropr_2];
 
+% The curves to draw. Use analyticpts instead to see the analytic ones
+% (sample 2 needs its own, built the same way as analyticpts1 in section 6).
 xyz1 = splinepts1;
 xyz2 = splinepts2;
 
-% Sort the table for reading and export; g, px1, ... stay in gene order.
+% Sort the table for reading and export; g, P1, P2 stay in gene order.
 T = sortrows(T, 'DiffDist_spline', 'descend');
+
+fprintf('To explore the result, run:\n');
+fprintf('    test_gui(T, g, X1, X2, P1, P2, xyz1, xyz2)\n');
