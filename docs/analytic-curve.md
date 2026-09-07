@@ -205,6 +205,35 @@ the default fits $\phi$ robustly. Projection is a grid search refined
 parabolically in $\log\mu$, accurate to $\sim10^{-6}$ against a 150,000-point
 brute-force search.
 
+## 8. Should the deeper sample be downsampled first?
+
+The two conditions' reference curves differ mainly through $\alpha$, which is
+fixed by sequencing depth (harmonic mean library 5,007 vs 6,262 here). It is
+natural to ask whether thinning the deeper sample to match would help.
+Running `depth_matching_experiment` (~11 s) answers it — **no**:
+
+* Thinning by $p=\text{HM}_1/\text{HM}_2 = 0.7996$ does converge $\alpha$
+  (1.5970 → 1.998 against 1.9973) and shrinks the gap between the two
+  references by about 60%, $\max|\Delta y|$ 0.109 → 0.042.
+* But two runs of the same procedure, differing only in the random thinning,
+  agree at only $\rho = 0.774$, while a thinned run agrees with the
+  full-depth run at $\rho = 0.848$. The thinning injects more noise than the
+  bias it removes.
+* The top 100 genes are stable either way (92–93 shared), so the damage is in
+  the bulk of the ranking, where scores are near zero.
+
+The deviation-vector construction already corrects for depth analytically;
+downsampling redoes that correction destructively.
+
+The by-product is more interesting than the answer: once $\alpha$ matches,
+$\phi$ still does not — 0.152 for sample 1 against 0.204 for sample 2. That
+residual can no longer be attributed to sequencing depth, so it is a real
+global difference in biological overdispersion between the two conditions.
+A fitted spline smears the same information into the shape of a curve, where
+nothing can read it back out.
+
+## 9. Reproducing the figures
+
 Both figures above are regenerated from the bundled data by
 
 ```matlab
