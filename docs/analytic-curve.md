@@ -204,3 +204,14 @@ been through `sc_norm`. `Dispersion=0` gives the pure-Poisson technical null;
 the default fits $\phi$ robustly. Projection is a grid search refined
 parabolically in $\log\mu$, accurate to $\sim10^{-6}$ against a 150,000-point
 brute-force search.
+
+Both figures above are regenerated from the bundled data by
+
+```matlab
+make_analytic_figures            % ~30 s; needs scGEAToolbox on the path
+```
+
+which prints $\alpha$ and both estimates of $\phi$, and writes the two PNGs
+into this folder. `PhiSource="genes"` switches the figure to the robust L1
+estimate `sc_analyticfit` uses (0.152 / 0.200) instead of the spline-matched
+value (0.129 / 0.159) plotted here.
