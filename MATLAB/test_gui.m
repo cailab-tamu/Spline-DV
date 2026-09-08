@@ -191,13 +191,13 @@ hFig.Visible = true;
     end
 
     function in_changeMarkerSize(~, ~)
-        if h1.SizeData > 40
-            h1.SizeData = 10;
-            h2.SizeData = 10;
-        else
-            h1.SizeData = h1.SizeData + 2;
-            h2.SizeData = h2.SizeData + 2;
-        end
+        % Step through a few useful marker sizes. This used to add 2 per
+        % click and reset to 10 once past 40, so from the default 36 a single
+        % click changed nothing anyone could see and a full sweep took about
+        % sixteen of them.
+        s = i_nextlevel(h1.SizeData(1), [6 12 24 36 60]);
+        h1.SizeData = s;
+        h2.SizeData = s;
     end
 
     function ChangeAlphaValue(~, ~)
@@ -205,11 +205,16 @@ hFig.Visible = true;
         % click and wrap only at 0.05 or below, so from the starting 0.1 the
         % first click landed exactly on 0 and both clouds disappeared, which
         % reads as the button being broken rather than as one step of a cycle.
-        levels = [0.05 0.1 0.25 0.5 1];
-        [~, k] = min(abs(levels - h1.MarkerFaceAlpha));
-        a = levels(mod(k, numel(levels)) + 1);
+        a = i_nextlevel(h1.MarkerFaceAlpha, [0.05 0.1 0.25 0.5 1]);
         h1.MarkerFaceAlpha = a;
         h2.MarkerFaceAlpha = a;
+    end
+
+    function v = i_nextlevel(current, levels)
+        % Next value in a wrapping cycle, entered at whichever level sits
+        % closest to the current one.
+        [~, k] = min(abs(levels - current));
+        v = levels(mod(k, numel(levels)) + 1);
     end
 
 
