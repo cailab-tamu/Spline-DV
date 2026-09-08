@@ -201,13 +201,15 @@ hFig.Visible = true;
     end
 
     function ChangeAlphaValue(~, ~)
-        if h1.MarkerFaceAlpha <= 0.05
-            h1.MarkerFaceAlpha = 1;
-            h2.MarkerFaceAlpha = 1;
-        else
-            h1.MarkerFaceAlpha = h1.MarkerFaceAlpha - 0.1;
-            h2.MarkerFaceAlpha = h2.MarkerFaceAlpha - 0.1;
-        end
+        % Step through a few useful opacities. This used to subtract 0.1 per
+        % click and wrap only at 0.05 or below, so from the starting 0.1 the
+        % first click landed exactly on 0 and both clouds disappeared, which
+        % reads as the button being broken rather than as one step of a cycle.
+        levels = [0.05 0.1 0.25 0.5 1];
+        [~, k] = min(abs(levels - h1.MarkerFaceAlpha));
+        a = levels(mod(k, numel(levels)) + 1);
+        h1.MarkerFaceAlpha = a;
+        h2.MarkerFaceAlpha = a;
     end
 
 
