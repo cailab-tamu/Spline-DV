@@ -186,6 +186,13 @@ discrepancy readable.*
   DV score mixes per-gene deviation with sampling noise in the two reference
   curves. Analytically the two references differ only through
   $(\alpha,\phi,\{L_j\})$, all of which are interpretable and estimable.
+  This shows up directly in the Procrustes dissimilarity between the two
+  conditions' curves, **0.0945 analytically against 0.9776 for the splines**:
+  two analytic references stay inside a two-parameter family whatever the data
+  does, whereas two independently fitted splines are free to take different
+  shapes, and do. Both figures are computed with the two curves paired by gene
+  name — Procrustes on the raw fits compares mismatched genes, because each
+  fit sorts genes by its own condition's statistics.
 * **The residual becomes interpretable.** $\hat\mu$ at the foot point
   estimates the gene's rate, and the CV residual is excess variability over
   the gamma-Poisson expectation rather than over an empirical trend.
@@ -204,7 +211,7 @@ v = [T.lgu T.lgcv T.dropr] - xyzFit(T.nearidx, :);   % same pattern as test.m
 For a two-condition comparison in one call, matching `sc_splinefit2`:
 
 ```matlab
-[T, sx, sy, sz, d, params] = sc_analyticfit2(Xraw, Yraw, genelist);
+[T, sx, sy, sz, d, genesfit, params] = sc_analyticfit2(Xraw, Yraw, genelist);
 ```
 
 Pass `IsNormalized=true` together with `LibSize=` if the matrix has already
@@ -213,6 +220,18 @@ been through `sc_norm`. `Dispersion=0` gives the pure-Poisson technical null;
 $\phi$ robustly per condition. Projection is a grid search refined
 parabolically in $\log\mu$, accurate to $\sim10^{-6}$ against a 150,000-point
 brute-force search.
+
+`sc_analyticfit2` returns `sx`, `sy` and `sz` in the shared gene order
+`genesfit`, with `d` the Procrustes dissimilarity, matching `sc_splinefit2`.
+Prefer `params` to `d` for judging how far apart the two references are:
+Procrustes may rotate and rescale, so it measures shape similarity after
+alignment rather than separation in the space the DV score lives in. The
+direct quantity is
+
+```matlab
+mu  = logspace(-3, 2, 500)';
+gap = max(abs(params.curve1.y(mu) - params.curve2.y(mu)));   % 0.1092
+```
 
 ## 8. Should the deeper sample be downsampled first?
 
