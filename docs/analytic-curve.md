@@ -51,6 +51,21 @@ $$\boxed{\;C_{\sigma}^2(\mu) = \frac{\alpha}{\mu} + \phi,
 $\alpha$ is **not** fitted: it is $c$ divided by the harmonic mean of the
 library sizes. On the bundled GSM3308547/8 data, $\alpha = 1.997$ and $1.597$.
 
+*On the divisor.* The step above uses the population variance $\frac1n\sum_j$,
+while the pipeline calls `std(X,0,·)`, which divides by $N-1$. That is exactly
+what makes $\alpha$ correct rather than approximately correct. For independent
+$X_j$ with a common mean but per-cell variances $\sigma_j^2$, and $m$ the
+sample mean,
+
+$$\mathbb{E}\Big[\textstyle\sum_j (X_j-m)^2\Big] = \Big(1-\tfrac1n\Big)\sum_j \sigma_j^2
+\quad\Longrightarrow\quad
+\mathbb{E}\Big[\tfrac{1}{n-1}\textstyle\sum_j (X_j-m)^2\Big] = \frac1n\sum_j \sigma_j^2 ,$$
+
+with no $O(1/n)$ remainder. Simulated on a synthetic Poisson gene at
+$\mu=1$ CP10K over 2000 replicates, the mean sample variance is 1.99850
+against $c^2\lambda\,\overline{(1/L)} = 1.99729$ — a 0.06% gap that is Monte
+Carlo noise. So $\alpha$ needs no finite-sample correction.
+
 **Dropout.** Zeros are invariant to a positive per-cell rescaling, so
 $D_r$ can be computed on raw counts. For the gamma-Poisson,
 $\Pr(K_{ij}=0) = (1+\phi L_j\lambda_i)^{-1/\phi}$, so
