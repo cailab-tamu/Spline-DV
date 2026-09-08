@@ -192,16 +192,25 @@ discrepancy readable.*
 
 ## 7. Usage
 
-`MATLAB/sc_analyticfit.m` is a drop-in replacement for `sc_splinefit`:
+`sc_analyticfit` is a drop-in replacement for `sc_splinefit`. Both it and
+the two-condition wrapper `sc_analyticfit2` live in scGEAToolbox, beside
+`sc_splinefit` and `sc_splinefit2`:
 
 ```matlab
 [T, xyzFit, curve, params] = sc_analyticfit(Xraw, genelist);
 v = [T.lgu T.lgcv T.dropr] - xyzFit(T.nearidx, :);   % same pattern as test.m
 ```
 
+For a two-condition comparison in one call, matching `sc_splinefit2`:
+
+```matlab
+[T, sx, sy, sz, d, params] = sc_analyticfit2(Xraw, Yraw, genelist);
+```
+
 Pass `IsNormalized=true` together with `LibSize=` if the matrix has already
 been through `sc_norm`. `Dispersion=0` gives the pure-Poisson technical null;
-the default fits $\phi$ robustly. Projection is a grid search refined
+`Dispersion=` a scalar forces one $\phi$ on both conditions; the default fits
+$\phi$ robustly per condition. Projection is a grid search refined
 parabolically in $\log\mu$, accurate to $\sim10^{-6}$ against a 150,000-point
 brute-force search.
 
