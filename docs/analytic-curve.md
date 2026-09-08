@@ -11,6 +11,89 @@ The curve does not have to be estimated nonparametrically. Under the standard
 count model for droplet scRNA-seq it has a closed form with **one** fitted
 parameter, and its dropout coordinate has a closed form with **none**.
 
+## How it works, step by step
+
+*A walkthrough from raw counts, using sample 1 of the bundled data. The formal
+derivation begins at Section 1.*
+
+**Step 0 — what you have.** A UMI matrix $K$, integers, genes by cells. After
+QC, $9{,}654 \times 994$. Nothing else.
+
+**Step 1 — the column sums are the important part.** $L_j=\sum_i K_{ij}$, the
+library size of each cell; median 5,011 here. This one vector determines almost
+the whole reference curve, which is the part that is not obvious until the
+derivation is done.
+
+**Step 2 — normalize, and notice what it does not do.** $X_{ij}=c\,K_{ij}/L_j$
+puts deep and shallow cells on a common scale. But **zeros are untouched** —
+dividing by a positive number can neither create nor destroy one. That is what
+makes the dropout coordinate free.
+
+**Step 3 — three numbers per gene.** Mean, $C_\sigma=\text{std}/\text{mean}$,
+and the fraction of cells with a zero count. That is the cloud the method works
+in.
+
+**Step 4 — ask what an *ordinary* gene would look like.** Gene $i$ has a
+transcriptome share $\lambda_i$, cell $j$ samples $L_j$ molecules:
+
+$$\mathbb E[K_{ij}] = L_j\lambda_i,\qquad
+\operatorname{Var}(K_{ij}) = L_j\lambda_i + \phi\,(L_j\lambda_i)^2$$
+
+One number per gene, $\lambda_i$; one number for the whole dataset, $\phi$ —
+how much more variable than pure sampling noise.
+
+**Step 5 — the mean coordinate collapses.** $\mathbb E[X_{ij}]=c\lambda_i$, the
+*same in every cell*, deep or shallow. Normalization has done its job, and
+$\mu_i=c\lambda_i$ simply re-reads $\lambda$.
+
+**Step 6 — the CV coordinate, the key step.** Every cell now has the same mean
+but a *different variance*, because a deeper cell measures the gene more
+precisely. So the pooled variance is the average of the per-cell variances,
+and dividing by $\mu^2$ makes the $\lambda$'s cancel:
+
+$$C_\sigma^2 = \frac{\alpha}{\mu} + \phi,
+\qquad \alpha = c\,\overline{(1/L)} = \frac{c}{\text{harmonic mean of }L_j}$$
+
+Read it as two terms. $\alpha/\mu$ is the **counting-statistics floor** — a
+rare gene cannot be measured precisely, whatever the biology — and $\phi$ is
+the biology on top. Here $\alpha = 1.9973$, straight from the library sizes,
+nothing fitted.
+
+**Step 7 — the dropout coordinate is free.** Zeros live on the raw counts, so
+$\Pr(K_{ij}=0)=e^{-L_j\lambda_i}$ under Poisson sampling. Averaging over the
+cells you actually have,
+
+$$D_r(\mu) = \frac1n\sum_j e^{-L_j\mu/c},$$
+
+the **empirical Laplace transform of your library sizes**. No free parameter at
+all: every $L_j$ is already known, so the mean–dropout relation of a dataset is
+fixed the moment it is loaded.
+
+**Step 8 — sweep $\mu$ and the curve appears.** Total cost: one fitted number,
+$\phi = 0.152$ here, from a robust regression on the gene cloud.
+
+**Step 9 — check it on real genes.**
+
+| gene | mean | $C_\sigma$ | predicted $C_\sigma$ | dropout | predicted dropout |
+|---|---|---|---|---|---|
+| Try4 | 0.206 | 3.295 | 3.138 | 0.886 | **0.882** |
+| Sparc | 0.945 | 1.663 | 1.506 | 0.612 | 0.584 |
+| Malat1 | 472.6 | 0.532 | 0.396 | 0.000 | 0.000 |
+| Actb | 18.24 | 0.895 | 0.512 | 0.009 | 0.001 |
+
+Dropout is predicted to three decimals with nothing fitted. Try4 sits
+essentially *on* the curve in this sample — it is a DV gene because it moves
+*off* the curve in sample 2. Actb's observed CV, 0.895, sits well above its
+prediction of 0.512: that gap is real biological variability, and finding such
+gaps is what the method is for.
+
+**What this buys you.** The spline asks the 9,654 genes where the curve should
+go; the analytic form asks the count model, and the genes contribute only one
+scalar. So the reference cannot be dragged around by the very genes being
+measured, it is defined at every mean rather than only where genes happen to
+sit, and it cannot leave the feasible region the way the fitted spline does
+when its dropout coordinate goes negative.
+
 ## 1. Setup
 
 Let $K_{ij}$ be the raw count of gene $i$ in cell $j$, $L_j=\sum_i K_{ij}$ the
